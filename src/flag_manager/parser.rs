@@ -9,13 +9,12 @@ pub struct Flag {
 }
 
 static mut FLAGS: Vec<Flag> = vec![];
-static ENTRY: Vec<String> = get_args();
     
 unsafe fn push_to_flags(flag: Flag) {
     FLAGS.push(flag)
 }
 
-pub fn new(identifire: &str, default: Option<&str>) {
+pub fn new(identifire: &str, default: Option<&str>) -> Option<String> {
     // Make new flag
     let new_flag: Flag = Flag{
         identifire: identifire.to_string(),
@@ -30,15 +29,17 @@ pub fn new(identifire: &str, default: Option<&str>) {
         },
     };
 
+    // TODO: refactor
     unsafe {
         // Push to flags
         push_to_flags(new_flag);
-    } 
-}
+    }
 
-// fn display_flags() {
-    // println!("These are flags")
-// }
+    match falgs_value(&identifire.to_string()) {
+        None => None,
+        Some(v) => Some(v)
+    }
+}
 
 fn get_args() -> Vec<String> {
     // Get args
@@ -52,3 +53,26 @@ fn get_args() -> Vec<String> {
     args
 }
 
+fn falgs_value(flag: &String) -> Option<String> {
+    let equal_mark: String = String::from("=");
+
+    // Concatenate flag and "="
+    let none_value: String = format!("{}{}", flag, equal_mark);
+
+    // find arg by none_value content
+    let whole_arg: String = get_whole_arg(&none_value);
+    
+    // Remove "=" and flag's identifire from argument
+    let value: String = whole_arg.replace(&none_value, "");
+
+    if value.trim().is_empty() {
+        None
+    } else {
+        Some(value)
+    }
+}
+
+fn get_whole_arg(none_value: &String) -> String {
+    let arg: String = get_args().into_iter().filter(|a| a.contains(none_value)).collect();
+    arg
+}

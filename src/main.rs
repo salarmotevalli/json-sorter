@@ -16,7 +16,7 @@
 mod flag_manager;
 
 fn main() {
-    let input = flag_manager::parser::new("-i", None);
+    let _ = flag_manager::parser::new("i", None);
 
     // flags::parser::parse();
 }
