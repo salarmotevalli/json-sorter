@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, process};
 
 pub struct Flag {
     // Define the name of flag
@@ -9,18 +9,10 @@ pub struct Flag {
 }
 
 static mut FLAGS: Vec<Flag> = vec![];
+static ENTRY: Vec<String> = get_args();
     
 unsafe fn push_to_flags(flag: Flag) {
     FLAGS.push(flag)
-}
-
-
-
-pub fn parse() {
-    let args: Vec<String> = env::args().skip(1).collect();
-    if args.len() == 0 {
-        display_flags();
-    }
 }
 
 pub fn new(identifire: &str, default: Option<&str>) {
@@ -44,6 +36,19 @@ pub fn new(identifire: &str, default: Option<&str>) {
     } 
 }
 
-fn display_flags() {
-    println!("These are flags")
+// fn display_flags() {
+    // println!("These are flags")
+// }
+
+fn get_args() -> Vec<String> {
+    // Get args
+    let args: Vec<String> = env::args().skip(1).collect();
+
+    if args.len() == 0 {
+        eprint!("fuck");
+        process::exit(1);
+    }
+
+    args
 }
+
