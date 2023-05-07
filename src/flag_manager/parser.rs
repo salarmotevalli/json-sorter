@@ -12,9 +12,9 @@ pub struct Flag {
     description: Option<String>,
 }
 
-static mut FLAGS: Vec<Flag> = vec![];
+pub static mut FLAGS: Vec<Flag> = vec![];
 
-fn get_args() -> Option<Vec<String>> {
+pub fn get_args() -> Option<Vec<String>> {
     // Get args
     let args: Vec<String> = env::args().skip(1).collect();
 
