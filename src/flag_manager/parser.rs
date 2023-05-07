@@ -1,15 +1,16 @@
 use std::env;
 
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct Flag {
     // Define the name of flag
-    identifier: String,
+    pub identifier: String,
 
     // Defalut value of the flag
     value: Option<String>,
 
     // Flag's description
-    description: Option<String>,
+    pub description: Option<String>,
 }
 
 pub static mut FLAGS: Vec<Flag> = vec![];

@@ -25,12 +25,14 @@ fn main() {
     if flag_manager::env::passed_flags_count() == 0 {
         flag_manager::display::err("Not enough arguments", Some("You have to pass at least one argument"));
         flag_manager::display::hello();
+        flag_manager::display::flags();
         process::exit(1);
     }
 
-    
+
 }
 
 fn parse_flags() {
-    let _ = flag_manager::parser::new("i", None, Some("define input file"));
+    let _ = flag_manager::parser::new("-i", None, Some("define input file"));
+    let _ = flag_manager::parser::new("-o", None, Some("define output file"));
 }
