@@ -20,5 +20,5 @@ fn main() {
 }
 
 fn parse_flags() {
-    let _ = flag_manager::parser::new("i", None);
+    let _ = flag_manager::parser::new("i", None, Some("define input file"));
 }

@@ -1,4 +1,4 @@
-use std::{env};
+use std::env;
 
 #[derive(Clone)]
 pub struct Flag {
@@ -7,6 +7,9 @@ pub struct Flag {
 
     // Defalut value of the flag
     value: Option<String>,
+
+    // Flag's description
+    description: Option<String>,
 }
 
 static mut FLAGS: Vec<Flag> = vec![];
@@ -32,15 +35,18 @@ fn get_arg(none_value: &String) -> Option<String> {
 
     let args = get_args()?;
     // Get the element that contains flag identifier
-    let arg = args.into_iter().filter(|a| a.contains(none_value)).collect();
+    let arg = args
+        .into_iter()
+        .filter(|a| a.contains(none_value))
+        .collect();
     Some(arg)
 }
 
 fn falgs_value(flag: String) -> Option<String> {
     // -------------------------------------------
-    // This function remove the identifier and 
-    // equal mark from argument and returns it as 
-    // the value of flag 
+    // This function remove the identifier and
+    // equal mark from argument and returns it as
+    // the value of flag
     // -------------------------------------------
 
     let equal_mark: String = String::from("=");
@@ -50,7 +56,7 @@ fn falgs_value(flag: String) -> Option<String> {
 
     // find arg by none_value content
     let whole_arg: String = get_arg(&none_value)?;
-    
+
     // Remove "=" and flag's identifier from argument
     let value: String = whole_arg.replace(&none_value, "");
 
@@ -60,26 +66,31 @@ fn falgs_value(flag: String) -> Option<String> {
         Some(value)
     }
 }
-    
+
 unsafe fn push_to_flags(flag: Flag) {
     FLAGS.push(flag)
 }
 
-fn new_falg(identifier: &str, default: Option<&str>) -> Flag {
-    Flag{
+fn new_falg(identifier: &str, default: Option<&str>, description: Option<&str>) -> Flag {
+    Flag {
         identifier: identifier.to_string(),
 
-        // Check default value if defined, set it as String type 
+        // Check default value if defined, set it as String type
         value: match default {
+            Some(v) => Some(v.to_string()),
+            None => None,
+        },
+
+        description: match description {
             Some(v) => Some(v.to_string()),
             None => None,
         },
     }
 }
 
-pub fn new(identifier: &str, default: Option<&str>) -> Option<String> {
+pub fn new(identifier: &str, default: Option<&str>, description: Option<&str>) -> Option<String> {
     // Make new flag
-    let new_flag: Flag = new_falg(identifier, default);
+    let new_flag: Flag = new_falg(identifier, default, description);
 
     unsafe {
         // Push to flags
@@ -88,6 +99,6 @@ pub fn new(identifier: &str, default: Option<&str>) -> Option<String> {
 
     match falgs_value(new_flag.identifier) {
         None => new_flag.value,
-        Some(v) => Some(v)
+        Some(v) => Some(v),
     }
 }
