@@ -21,12 +21,14 @@ fn main() {
     // Parse flags
     parse_flags();
     
-    // 
+    // Validate entry  
     if flag_manager::env::passed_flags_count() == 0 {
+        flag_manager::display::err("Not enough arguments", Some("You have to pass at least one argument"));
         flag_manager::display::hello();
-        flag_manager::display::err("Not enough arguments");
         process::exit(1);
     }
+
+    
 }
 
 fn parse_flags() {
