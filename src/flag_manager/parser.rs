@@ -1,8 +1,9 @@
 use std::{env};
 
+#[derive(Clone)]
 pub struct Flag {
     // Define the name of flag
-    identifire: String,
+    identifier: String,
 
     // Defalut value of the flag
     value: Option<String>,
@@ -14,6 +15,7 @@ fn get_args() -> Option<Vec<String>> {
     // Get args
     let args: Vec<String> = env::args().skip(1).collect();
 
+    // Check are there any args
     if args.len() == 0 {
         return None;
     }
@@ -22,13 +24,25 @@ fn get_args() -> Option<Vec<String>> {
 }
 
 fn get_arg(none_value: &String) -> Option<String> {
-    // TODO
+    // -------------------------------------------
+    // This function return the whole argument:
+    // ./app -i=input.json
+    // the function returns "-i=input.json"
+    // -------------------------------------------
+
     let args = get_args()?;
+    // Get the element that contains flag identifier
     let arg = args.into_iter().filter(|a| a.contains(none_value)).collect();
     Some(arg)
 }
 
-fn falgs_value(flag: &String) -> Option<String> {
+fn falgs_value(flag: String) -> Option<String> {
+    // -------------------------------------------
+    // This function remove the identifier and 
+    // equal mark from argument and returns it as 
+    // the value of flag 
+    // -------------------------------------------
+
     let equal_mark: String = String::from("=");
 
     // Concatenate flag and "="
@@ -37,7 +51,7 @@ fn falgs_value(flag: &String) -> Option<String> {
     // find arg by none_value content
     let whole_arg: String = get_arg(&none_value)?;
     
-    // Remove "=" and flag's identifire from argument
+    // Remove "=" and flag's identifier from argument
     let value: String = whole_arg.replace(&none_value, "");
 
     if value.trim().is_empty() {
@@ -51,30 +65,29 @@ unsafe fn push_to_flags(flag: Flag) {
     FLAGS.push(flag)
 }
 
-pub fn new(identifire: &str, default: Option<&str>) -> Option<String> {
-    // Make new flag
-    let new_flag: Flag = Flag{
-        identifire: identifire.to_string(),
+fn new_falg(identifier: &str, default: Option<&str>) -> Flag {
+    Flag{
+        identifier: identifier.to_string(),
 
         // Check default value if defined, set it as String type 
         value: match default {
-            Some(v) => {
-                let value = v.to_string();
-                Some(value)
-            }
+            Some(v) => Some(v.to_string()),
             None => None,
         },
-    };
-
-    // TODO: refactor
-    unsafe {
-        // Push to flags
-        push_to_flags(new_flag);
-    }
-
-    match falgs_value(&identifire.to_string()) {
-        None => None,
-        Some(v) => Some(v)
     }
 }
 
+pub fn new(identifier: &str, default: Option<&str>) -> Option<String> {
+    // Make new flag
+    let new_flag: Flag = new_falg(identifier, default);
+
+    unsafe {
+        // Push to flags
+        push_to_flags(new_flag.clone());
+    }
+
+    match falgs_value(new_flag.identifier) {
+        None => new_flag.value,
+        Some(v) => Some(v)
+    }
+}
