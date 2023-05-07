@@ -16,8 +16,11 @@
 mod flag_manager;
 
 fn main() {
-    let _ = flag_manager::parser::new("i", None);
-
+    let input = flag_manager::parser::new("i", None);
+    match input {
+        Some(inner) => {println!("Fuck {}", inner)},
+        None => {println!("Salar")},
+    }
     // flags::parser::parse();
 }
 
