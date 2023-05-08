@@ -33,6 +33,7 @@ fn main() {
 }
 
 fn parse_flags() {
-    let _ = flag_manager::parser::new("-i", None, Some("define input file"));
-    let _ = flag_manager::parser::new("-o", None, Some("define output file"));
+    let _ = flag_manager::parser::new("-i", None, Some("Define input file"));
+    let _ = flag_manager::parser::new("-o", None, Some("Define output file"));
+    let _ = flag_manager::parser::new("-h", None, Some("Help!"));
 }
