@@ -15,16 +15,9 @@ pub struct Flag {
 
 pub static mut FLAGS: Vec<Flag> = vec![];
 
-pub fn get_args() -> Option<Vec<String>> {
-    // Get args
-    let args: Vec<String> = env::args().skip(1).collect();
-
-    // Check are there any args
-    if args.len() == 0 {
-        return None;
-    }
-
-    Some(args)
+pub fn get_args() -> Vec<String> {
+    // Return args
+    env::args().skip(1).collect()
 }
 
 fn get_arg(none_value: &String) -> Option<String> {
@@ -34,7 +27,7 @@ fn get_arg(none_value: &String) -> Option<String> {
     // the function returns "-i=input.json"
     // -------------------------------------------
 
-    let args = get_args()?;
+    let args = get_args();
     // Get the element that contains flag identifier
     let arg = args
         .into_iter()

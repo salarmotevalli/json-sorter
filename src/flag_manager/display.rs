@@ -18,7 +18,7 @@ fn dot(flag_len: u8) ->String {
 }
 
 pub fn hello() {
-    println!("sorter");
+    println!("{}\n", "Sort every thing you need ;)".purple());
 }
 
 pub fn usage() {
@@ -37,6 +37,7 @@ pub fn flags() {
     }
 }
 
+#[allow(dead_code)]
 pub fn err(message: &str, description: Option<&str>) {
     println!("{} {}", "Error:".red().bold() , message);
 
