@@ -1,5 +1,7 @@
 use text_colorizer::Colorize;
-use super::parser;
+
+use crate::flag_manager::parser;
+
 
 
 fn dot(flag_len: u8) ->String {
@@ -38,7 +40,7 @@ pub fn flags() {
 }
 
 #[allow(dead_code)]
-pub fn err(message: &str, description: Option<&str>) {
+pub fn err(message: &str, description: Option<String>) {
     println!("{} {}", "Error:".red().bold() , message);
 
     match description {
