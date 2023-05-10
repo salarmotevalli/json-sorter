@@ -1,6 +1,7 @@
 use std::fs::metadata;
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, io, process};
+use serde_json::{Result, Value};
 
 mod flag_manager;
 mod display;
@@ -43,7 +44,10 @@ fn main() {
         };
     }
 
-    println!("{}", entry_data)
+    match valid_json(entry_data) {
+        Err(e) => display::err("message", Some(e.to_string())),
+        Ok(v) => println!("{:?}", v),
+    }
     
     // validate
     // decode
@@ -54,7 +58,7 @@ fn main() {
 }
 
 
-fn stdin_data() -> Result<String, String> {
+fn stdin_data() -> std::result::Result<String, String> {
     let mut lines = io::stdin().lines();
     let mut buffer = String::new();
 
@@ -86,4 +90,9 @@ fn is_data_piped() -> bool {
         Ok(meta) => return meta.mode() == 4480, // Return is data piped
         Err(_) => false,
     }
+}
+
+fn valid_json(parsed_data: String) -> Result<Value> {
+    let valid_json: Value = serde_json::from_str(&parsed_data)?; 
+    Ok(valid_json)
 }
