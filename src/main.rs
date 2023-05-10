@@ -1,19 +1,5 @@
 use std::fs::metadata;
-use std::os::unix::io::AsRawFd;
-// use std::io;
-// fn main() -> io::Result<()> {
-//     let stdin = io::stdin();
-//     let fd = stdin.as_raw_fd();
-//     let meta = metadata("/dev/fd/".to_owned() + &fd.to_string())?;
-//     println!("File type: {:?}", meta.file_type());
-//     Ok(())
-// }
-
-// use crate::flags;
-
-// mod flags;
-
-use std::os::unix::prelude::MetadataExt;
+use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, io, process};
 
 mod flag_manager;
@@ -24,33 +10,41 @@ fn main() {
     let input = flag_manager::parser::new("-i", None, Some("Define input file"));
     let _ = flag_manager::parser::new("-o", None, Some("Define output file"));
     let _ = flag_manager::parser::new("-h", None, Some("Help!"));
-    
-    // Validate entry  
-    if flag_manager::env::passed_flags_count() == 0 {
-        display::hello();
-        display::usage();
-        display::flags();
+
+    // check flag and stdin to is there any input data
+    if input == None && !is_data_piped() {
+        display::err(
+            "No data passed to the app",
+            Some("pleas pass data to app with '-i' flag or pipe in stdin".to_string())
+        );
+
+        process::exit(1);
     }
 
-    // check flags
+    // Store entry data
+    let mut entry_data: String = String::new();
+
     if input != None {
-        let file = fs::read_to_string(input.unwrap());
-        
         // Check the error
-        match file
-        {
-            Err(e) => display::err("Couldn't open target file", Some(e.to_string())),
-            Ok(f) => println!("{}", f),     
+        match fs::read_to_string(input.unwrap()) {
+            Err(e) => {
+                display::err("Couldn't open target file", Some(e.to_string()));
+                process::exit(1);
+            },
+            Ok(f) => entry_data.push_str(&f),
+        };
+    } else {
+        match stdin_data() {
+            Ok(stdin) => entry_data.push_str(&stdin),
+            Err(e) => {
+                display::err(e.as_str(), None);
+                process::exit(1);
+            },
         };
     }
 
-    match ttest() {
-        Ok(stdin) => println!("{}", stdin),
-        Err(_) => process::exit(1),
-    };
-
-    // check stdin
-    // get data
+    println!("{}", entry_data)
+    
     // validate
     // decode
     // sort
@@ -60,36 +54,36 @@ fn main() {
 }
 
 
-fn ttest () -> Result<String, String> {
-    let stdin: io::Stdin = io::stdin();
-    let mut lines = stdin.lines();
+fn stdin_data() -> Result<String, String> {
+    let mut lines = io::stdin().lines();
+    let mut buffer = String::new();
+
+    while let Some(line) = lines.next() {
+        let last_input = line.unwrap();
+
+        // Stop reading
+        if last_input.len() == 0 {
+            break;
+        }
+
+        // Add a new line once user_input starts storing user input
+        if buffer.len() > 0 {
+            buffer.push_str("\n");
+        }
+
+        // Store input
+        buffer.push_str(&last_input);
+    }
+
+    Ok(buffer)
+}
+
+fn is_data_piped() -> bool {
     let fd = io::stdin().as_raw_fd();
     let meta = metadata("/dev/fd/".to_owned() + &fd.to_string());
 
     match meta {
-        Ok(meta) => {
-            if meta.mode() != 4480 {
-                return Err(String::from("No data piped to stdin"));
-            }
-
-            let mut buffer = String::new();
-            while let Some(line) = lines.next() {
-                let last_input = line.unwrap();
-        
-                // stop reading
-                if last_input.len() == 0 {
-                    break;
-                }
-        
-                // add a new line once user_input starts storing user input
-                if buffer.len() > 0 {
-                    buffer.push_str("\n");
-                }
-        
-                // store user input
-                buffer.push_str(&last_input);
-            }            return Ok(buffer);
-        },
-        Err(e) => {return Err(e.to_string())},
-    };
+        Ok(meta) => return meta.mode() == 4480, // Return is data piped
+        Err(_) => false,
+    }
 }
