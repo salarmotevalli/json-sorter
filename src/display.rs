@@ -3,7 +3,7 @@ use text_colorizer::Colorize;
 use crate::flag_manager::parser;
 
 
-
+#[allow(dead_code)]
 fn dot(flag_len: u8) ->String {
     // return dots beetween flag and its description
 
@@ -19,14 +19,18 @@ fn dot(flag_len: u8) ->String {
     dots
 }
 
+#[allow(dead_code)]
+
 pub fn hello() {
     println!("{}\n", "Sort every thing you need ;)".purple());
 }
 
+#[allow(dead_code)]
 pub fn usage() {
     println!("usage");
 }
 
+#[allow(dead_code)]
 pub fn flags() {
     unsafe {
 
@@ -39,6 +43,7 @@ pub fn flags() {
     }
 }
 
+#[allow(dead_code)]
 pub fn err(message: &str, description: Option<&str>) {
     println!("{} {}", "Error:".red().bold() , message);
 

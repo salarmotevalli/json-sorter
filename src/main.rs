@@ -1,11 +1,11 @@
 use std::fs::metadata;
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, io, process};
-use serde_json::{Result as SerdeResult, Value, Map};
-use std::collections::HashMap;
+use serde_json::{Result as SerdeResult, Value};
 
 mod flag_manager;
 mod display;
+mod json;
 
 fn main() {
     // Parse flags
@@ -48,7 +48,7 @@ fn main() {
     
 
     // validate and decode json
-    let mut data_map  = valid_json(entry_data).unwrap();
+    let data_map  = valid_json(entry_data).unwrap();
     // match valid_json(entry_data) {
     //     Err(e) => display::err("message", Some(&e.to_string())),
     //     Ok(v) => {
@@ -63,10 +63,9 @@ fn main() {
     // TODO
 
     // encode
-    let sorted_string = data_map;
 
     // put out
-    println!("{}", sorted_string.to_string());
+    println!("{}", data_map.to_string());
 
 }
 
