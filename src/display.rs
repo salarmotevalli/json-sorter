@@ -39,8 +39,7 @@ pub fn flags() {
     }
 }
 
-#[allow(dead_code)]
-pub fn err(message: &str, description: Option<String>) {
+pub fn err(message: &str, description: Option<&str>) {
     println!("{} {}", "Error:".red().bold() , message);
 
     match description {

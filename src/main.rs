@@ -1,7 +1,8 @@
 use std::fs::metadata;
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, io, process};
-use serde_json::{Result, Value};
+use serde_json::{Result as SerdeResult, Value, Map};
+use std::collections::HashMap;
 
 mod flag_manager;
 mod display;
@@ -16,7 +17,7 @@ fn main() {
     if input == None && !is_data_piped() {
         display::err(
             "No data passed to the app",
-            Some("pleas pass data to app with '-i' flag or pipe in stdin".to_string())
+            Some("pleas pass data to app with '-i' flag or pipe in stdin")
         );
 
         process::exit(1);
@@ -24,12 +25,12 @@ fn main() {
 
     // Store entry data
     let mut entry_data: String = String::new();
-
+    
     if input != None {
         // Check the error
         match fs::read_to_string(input.unwrap()) {
             Err(e) => {
-                display::err("Couldn't open target file", Some(e.to_string()));
+                display::err("Couldn't open target file", Some(&e.to_string()));
                 process::exit(1);
             },
             Ok(f) => entry_data.push_str(&f),
@@ -44,14 +45,22 @@ fn main() {
         };
     }
 
-    match valid_json(entry_data) {
-        Err(e) => display::err("message", Some(e.to_string())),
-        Ok(v) => println!("{:?}", v),
-    }
     
-    // validate
-    // decode
+
+    // validate and decode json
+    let mut data_map = &Map::new();
+    match valid_json(entry_data) {
+        Err(e) => display::err("message", Some(&e.to_string())),
+        Ok(v) => {
+            data_map = v.as_object().unwrap();
+        },
+    };
+
+
+
+    
     // sort
+    
     // encode
     // put out
 
@@ -92,7 +101,7 @@ fn is_data_piped() -> bool {
     }
 }
 
-fn valid_json(parsed_data: String) -> Result<Value> {
+fn valid_json(parsed_data: String) -> SerdeResult<Value> {
     let valid_json: Value = serde_json::from_str(&parsed_data)?; 
     Ok(valid_json)
 }
