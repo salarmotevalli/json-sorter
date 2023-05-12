@@ -1,10 +1,10 @@
+use serde_json::{Result as SerdeResult, Value};
 use std::fs::metadata;
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, io, process};
-use serde_json::{Result as SerdeResult, Value};
 
-mod flag_manager;
 mod display;
+mod flag_manager;
 mod json;
 
 fn main() {
@@ -17,7 +17,7 @@ fn main() {
     if input == None && !is_data_piped() {
         display::err(
             "No data passed to the app",
-            Some("pleas pass data to app with '-i' flag or pipe in stdin")
+            Some("pleas pass data to app with '-i' flag or pipe in stdin"),
         );
 
         process::exit(1);
@@ -25,14 +25,14 @@ fn main() {
 
     // Store entry data
     let mut entry_data: String = String::new();
-    
+
     if input != None {
         // Check the error
         match fs::read_to_string(input.unwrap()) {
             Err(e) => {
                 display::err("Couldn't open target file", Some(&e.to_string()));
                 process::exit(1);
-            },
+            }
             Ok(f) => entry_data.push_str(&f),
         };
     } else {
@@ -41,14 +41,13 @@ fn main() {
             Err(e) => {
                 display::err(e.as_str(), None);
                 process::exit(1);
-            },
+            }
         };
     }
 
-    
-
     // validate and decode json
-    let data_map  = valid_json(entry_data).unwrap();
+    let data_map = json::Json::new(entry_data);
+    // valid_json(entry_data).unwrap();
     // match valid_json(entry_data) {
     //     Err(e) => display::err("message", Some(&e.to_string())),
     //     Ok(v) => {
@@ -56,9 +55,6 @@ fn main() {
     //     },
     // };
 
-
-
-    
     // sort
     // TODO
 
@@ -66,9 +62,7 @@ fn main() {
 
     // put out
     println!("{}", data_map.to_string());
-
 }
-
 
 fn stdin_data() -> std::result::Result<String, String> {
     let mut lines = io::stdin().lines();
@@ -105,6 +99,6 @@ fn is_data_piped() -> bool {
 }
 
 fn valid_json(parsed_data: String) -> SerdeResult<Value> {
-    let valid_json: Value = serde_json::from_str(&parsed_data)?; 
+    let valid_json: Value = serde_json::from_str(&parsed_data)?;
     Ok(valid_json)
 }

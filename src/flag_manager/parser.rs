@@ -1,7 +1,6 @@
 use std::env;
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Flag {
     // Define the name of flag
     pub identifier: String,

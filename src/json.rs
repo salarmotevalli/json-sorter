@@ -1,25 +1,31 @@
 pub struct Json {
-    entry: String
+    entry: String,
 }
 
 impl Json {
-
-    fn new(entry: String) -> Json {
-        Json{entry: entry}
+    pub fn new(entry: String) -> Json {
+        Json { entry: entry }
     }
-    fn encode() {
+
+    pub fn encode(&self) {
         todo!();
     }
 
-    fn decode() {
+    pub fn decode(&self) {
         todo!();
     }
 
-    fn display() {
-        
-    }
+    pub fn display(&self) {}
 
-    fn display_indent() {
-        
+    pub fn display_indent(&self) {}
+}
+
+impl std::fmt::Display for Json {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(
+            fmt,
+            "My name is {} and I'm {} years old.",
+            "Salar", "Motevalli"
+        )
     }
 }
