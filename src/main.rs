@@ -48,21 +48,25 @@ fn main() {
     
 
     // validate and decode json
-    let mut data_map = &Map::new();
-    match valid_json(entry_data) {
-        Err(e) => display::err("message", Some(&e.to_string())),
-        Ok(v) => {
-            data_map = v.as_object().unwrap();
-        },
-    };
+    let mut data_map  = valid_json(entry_data).unwrap();
+    // match valid_json(entry_data) {
+    //     Err(e) => display::err("message", Some(&e.to_string())),
+    //     Ok(v) => {
+    //         data_map = v;
+    //     },
+    // };
 
 
 
     
     // sort
-    
+    // TODO
+
     // encode
+    let sorted_string = data_map;
+
     // put out
+    println!("{}", sorted_string.to_string());
 
 }
 
