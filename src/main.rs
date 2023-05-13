@@ -1,4 +1,4 @@
-use serde_json::{Result as SerdeResult, Value};
+use json::Json;
 use std::fs::metadata;
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, io, process};
@@ -46,7 +46,7 @@ fn main() {
     }
 
     // validate and decode json
-    let data_map = json::Json::new(entry_data);
+    let data_map = Json::new(entry_data);
     // valid_json(entry_data).unwrap();
     // match valid_json(entry_data) {
     //     Err(e) => display::err("message", Some(&e.to_string())),
@@ -96,9 +96,4 @@ fn is_data_piped() -> bool {
         Ok(meta) => return meta.mode() == 4480, // Return is data piped
         Err(_) => false,
     }
-}
-
-fn valid_json(parsed_data: String) -> SerdeResult<Value> {
-    let valid_json: Value = serde_json::from_str(&parsed_data)?;
-    Ok(valid_json)
 }
