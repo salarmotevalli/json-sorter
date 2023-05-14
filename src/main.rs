@@ -1,7 +1,7 @@
 use json::Json;
 use serde_json::Value;
 use std::fs::{metadata, File};
-use std::io::{self, Write, BufWriter};
+use std::io::{self, BufWriter, Write};
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, process};
 
@@ -58,14 +58,14 @@ fn main() {
     // TODO
 
     // put out
-    
+
     let mut buffer: BufWriter<Box<dyn io::Write>> = BufWriter::new(Box::new(io::stdout()));
 
     if let Some(output_file) = output {
         let file = File::create(&output_file).expect("cannot create file");
         buffer = BufWriter::new(Box::new(file));
     }
-    
+
     match buffer.write_all(Json::encode_with_indent(&data_map).as_bytes()) {
         Err(e) => display::err("Unable to write in buffer", Some(&e.to_string())),
         Ok(_) => {}

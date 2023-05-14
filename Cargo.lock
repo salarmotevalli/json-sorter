@@ -40,14 +40,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 
 [[package]]
-name = "json-sorter"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "text-colorizer",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -80,6 +72,14 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "seyn"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "text-colorizer",
 ]
 
 [[package]]
