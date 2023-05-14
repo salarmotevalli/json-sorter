@@ -57,8 +57,6 @@ fn main() {
     // sort
     // TODO
 
-    // encode
-
     // put out
     
     let mut buffer: BufWriter<Box<dyn io::Write>> = BufWriter::new(Box::new(io::stdout()));
