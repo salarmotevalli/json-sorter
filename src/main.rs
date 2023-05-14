@@ -68,7 +68,10 @@ fn main() {
         buffer = BufWriter::new(Box::new(file));
     }
     
-    buffer.write_all(Json::encode_with_indent(&data_map).as_bytes());
+    match buffer.write_all(Json::encode_with_indent(&data_map).as_bytes()) {
+        Err(e) => display::err("Unable to write in buffer", Some(&e.to_string())),
+        Ok(_) => {}
+    }
     // println!("{}", );
 }
 
