@@ -1,7 +1,9 @@
 use json::Json;
-use std::fs::metadata;
+use serde_json::Value;
+use std::fs::{metadata, File};
+use std::io::{self, Write, BufWriter};
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
-use std::{fs, io, process};
+use std::{fs, process};
 
 mod display;
 mod flag_manager;
@@ -10,7 +12,7 @@ mod json;
 fn main() {
     // Parse flags
     let input = flag_manager::parser::new("-i", None, Some("Define input file"));
-    let _ = flag_manager::parser::new("-o", None, Some("Define output file"));
+    let output = flag_manager::parser::new("-o", None, Some("Define output file"));
     let _ = flag_manager::parser::new("-h", None, Some("Help!"));
 
     // check flag and stdin to is there any input data
@@ -45,15 +47,12 @@ fn main() {
         };
     }
 
+    let mut data_map = Value::Null;
     // validate and decode json
-    let data_map = Json::new(entry_data);
-    // valid_json(entry_data).unwrap();
-    // match valid_json(entry_data) {
-    //     Err(e) => display::err("message", Some(&e.to_string())),
-    //     Ok(v) => {
-    //         data_map = v;
-    //     },
-    // };
+    match Json::decode(&entry_data) {
+        Err(e) => display::err("Unable to decode json", Some(&e.to_string())),
+        Ok(v) => data_map = v,
+    };
 
     // sort
     // TODO
@@ -61,7 +60,16 @@ fn main() {
     // encode
 
     // put out
-    println!("{}", data_map.to_string());
+    
+    let mut buffer: BufWriter<Box<dyn io::Write>> = BufWriter::new(Box::new(io::stdout()));
+
+    if let Some(output_file) = output {
+        let file = File::create(&output_file).expect("cannot create file");
+        buffer = BufWriter::new(Box::new(file));
+    }
+    
+    buffer.write_all(Json::encode_with_indent(&data_map).as_bytes());
+    // println!("{}", );
 }
 
 fn stdin_data() -> std::result::Result<String, String> {

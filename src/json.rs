@@ -1,45 +1,22 @@
-use serde_json::{from_str, Map, Result as SerdeResult, Value};
+use serde_json::json;
+use serde_json::{Map, Result as SerdeResult, Value};
+use std::{collections::HashMap, fmt::format};
 
-pub struct Json {
-    entry: String,
-    dataMap: Option<Value>,
-}
+pub struct Json {}
 
 impl Json {
-    pub fn new(entry: String) -> Json {
-        Json {
-            entry: entry,
-            dataMap: None,
-        }
+    pub fn decode(json_string: &str) -> SerdeResult<Value> {
+        // Decode to Value struct
+        let value: Value = serde_json::from_str(json_string)?;
+        Ok(value)
     }
 
-    pub fn decode(&mut self) -> &Json {
-        match from_str(&self.entry) {
-            Ok(j) => {
-                self.dataMap = j;
-                self
-            }
-            Err(_) => {
-                self.dataMap = None;
-                self
-            }
-        }
+    pub fn encode(data_map: &Value) -> String {
+        data_map.to_string()
     }
 
-    pub fn get_decoded(&self) -> Value {
-        if let Some(d) = &self.dataMap {
-            d.clone()
-        } else {
-            Value::Null
-        }
-    }
-
-    pub fn encode(&self) -> String {
-        todo!();
-    }
-
-    pub fn decode_with_indent(&self) -> String {
-        todo!();
+    pub fn encode_with_indent(data_map: &Value) -> String {
+        serde_json::to_string_pretty(data_map).unwrap()
     }
 }
 
