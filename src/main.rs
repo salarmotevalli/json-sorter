@@ -1,45 +1,34 @@
 use clap::{Arg, Command};
-use json::Json;
-use serde_json::Value;
 use std::fs::{metadata, File};
 use std::io::{self, BufWriter, Write};
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, process};
 
 mod display;
-mod json;
 
 fn main() {
+    // Parse flags
     let matches = Command::new("salar")
         .arg_required_else_help(!is_data_piped())
         .arg(Arg::new("input").short('i').long("input"))
+        .arg(Arg::new("output").short('o').long("output"))
         .get_matches();
-    // Parse flags
-
-    if matches.get_one::<String>("input") == None && !is_data_piped() {
-        display::err(
-            "No data passed to the app",
-            Some("pleas pass data to app with '-i' flag or pipe in stdin"),
-        );
-
-        process::exit(1);
-    }
 
     // Store entry data
-    let mut entry_data: String = String::new();
+    let mut entry_buf: String = String::new();
 
     if matches.get_one::<String>("input") != None {
         // Check the error
-        match fs::read_to_string(String::from("salar")) {
+        match fs::read_to_string(matches.get_one::<String>("input").unwrap()) {
             Err(e) => {
                 display::err("Couldn't open target file", Some(&e.to_string()));
                 process::exit(1);
             }
-            Ok(f) => entry_data.push_str(&f),
+            Ok(f) => entry_buf.push_str(&f),
         };
     } else {
         match stdin_data() {
-            Ok(stdin) => entry_data.push_str(&stdin),
+            Ok(stdin) => entry_buf.push_str(&stdin),
             Err(e) => {
                 display::err(e.as_str(), None);
                 process::exit(1);
@@ -47,11 +36,13 @@ fn main() {
         };
     }
 
-    let mut data_map = Value::Null;
     // validate and decode json
-    match Json::decode(&entry_data) {
-        Err(e) => display::err("Unable to decode json", Some(&e.to_string())),
-        Ok(v) => data_map = v,
+    let data_map = match serde_json::from_str(&entry_buf) {
+        Err(e) => {
+            display::err("Unable to decode json", Some(&e.to_string()));
+            process::exit(1);
+        }
+        Ok(v) => v,
     };
 
     // sort
@@ -67,7 +58,7 @@ fn main() {
         buffer = BufWriter::new(Box::new(file));
     }
 
-    match buffer.write_all(Json::encode_with_indent(&data_map).as_bytes()) {
+    match buffer.write_all(serde_json::to_string_pretty(&data_map).unwrap().as_bytes()) {
         Err(e) => display::err("Unable to write in buffer", Some(&e.to_string())),
         Ok(_) => {}
     }

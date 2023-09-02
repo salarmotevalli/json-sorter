@@ -1,8 +1,8 @@
 {
-    "Salar": "Motevalli",
-    "Alireza": "Motevalli",
-    "Nariman": {
-        "Last": "Talebi",
-        "Age": 13
-    }
+  "Alireza": "Motevalli",
+  "Nariman": {
+    "Age": 13,
+    "Last": "Talebi"
+  },
+  "Salar": "Motevalli"
 }
