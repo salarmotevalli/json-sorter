@@ -1,3 +1,4 @@
+use clap::{Arg, Command};
 use json::Json;
 use serde_json::Value;
 use std::fs::{metadata, File};
@@ -6,17 +7,16 @@ use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 use std::{fs, process};
 
 mod display;
-mod flag_manager;
 mod json;
 
 fn main() {
+    let matches = Command::new("salar")
+        .arg_required_else_help(!is_data_piped())
+        .arg(Arg::new("input").short('i').long("input"))
+        .get_matches();
     // Parse flags
-    let input = flag_manager::parser::new("-i", None, Some("Define input file"));
-    let output = flag_manager::parser::new("-o", None, Some("Define output file"));
-    let _ = flag_manager::parser::new("-h", None, Some("Help!"));
 
-    // check flag and stdin to is there any input data
-    if input == None && !is_data_piped() {
+    if matches.get_one::<String>("input") == None && !is_data_piped() {
         display::err(
             "No data passed to the app",
             Some("pleas pass data to app with '-i' flag or pipe in stdin"),
@@ -28,9 +28,9 @@ fn main() {
     // Store entry data
     let mut entry_data: String = String::new();
 
-    if input != None {
+    if matches.get_one::<String>("input") != None {
         // Check the error
-        match fs::read_to_string(input.unwrap()) {
+        match fs::read_to_string(String::from("salar")) {
             Err(e) => {
                 display::err("Couldn't open target file", Some(&e.to_string()));
                 process::exit(1);
@@ -55,14 +55,14 @@ fn main() {
     };
 
     // sort
-    // serde decode json to BTreeMap type so 
-    // the data map is sorted now  
+    // serde decode json to BTreeMap type so
+    // the data map is sorted now
 
     // put out
 
     let mut buffer: BufWriter<Box<dyn io::Write>> = BufWriter::new(Box::new(io::stdout()));
 
-    if let Some(output_file) = output {
+    if let Some(output_file) = matches.get_one::<String>("input") {
         let file = File::create(&output_file).expect("cannot create file");
         buffer = BufWriter::new(Box::new(file));
     }
@@ -71,7 +71,6 @@ fn main() {
         Err(e) => display::err("Unable to write in buffer", Some(&e.to_string())),
         Ok(_) => {}
     }
-    // println!("{}", );
 }
 
 fn stdin_data() -> std::result::Result<String, String> {
