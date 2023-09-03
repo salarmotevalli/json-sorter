@@ -1,10 +1,10 @@
 use clap::{Arg, Command};
+use serde_json::Value;
 use std::fs;
 use std::fs::{metadata, File};
 use std::io::{self, BufWriter, Write};
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 
-mod display;
 mod error;
 
 fn main() -> error::Result<()> {
@@ -23,9 +23,7 @@ fn main() -> error::Result<()> {
     };
 
     // validate and decode json
-    let data_map = serde_json::from_str(entry_buf.as_str())?;
-
-    println!("{entry_buf}");
+    let data_map: Value = serde_json::from_str(entry_buf.as_str())?;
 
     // sort
     // serde decode json to BTreeMap type so
@@ -35,7 +33,7 @@ fn main() -> error::Result<()> {
 
     let mut buffer: BufWriter<Box<dyn io::Write>> = BufWriter::new(Box::new(io::stdout()));
 
-    if let Some(output_file) = matches.get_one::<String>("input") {
+    if let Some(output_file) = matches.get_one::<String>("output") {
         let file = File::create(&output_file).expect("cannot create file");
         buffer = BufWriter::new(Box::new(file));
     }
