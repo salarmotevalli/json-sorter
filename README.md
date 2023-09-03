@@ -2,19 +2,19 @@
 
 Usage
 ```
-seyn -i=json-file-name
+seyn -i <json-file>
 ```
 
 or
 
 ```
-cat json-file-name | seyn
+cat <json-file> | seyn
 ```
 
 Also you can define output file
 
 ```
-cat json-file-name | seyn -o=sorted_json.json
+cat <json-file> | seyn -o sorted_json.json
 ```
 this flag creates sorted_json.json file and puts the result in that
 
