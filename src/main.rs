@@ -1,12 +1,13 @@
 use clap::{Arg, Command};
+use std::fs;
 use std::fs::{metadata, File};
 use std::io::{self, BufWriter, Write};
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
-use std::{fs, process};
 
 mod display;
+mod error;
 
-fn main() {
+fn main() -> error::Result<()> {
     // Parse flags
     let matches = Command::new("salar")
         .arg_required_else_help(!is_data_piped())
@@ -15,35 +16,16 @@ fn main() {
         .get_matches();
 
     // Store entry data
-    let mut entry_buf: String = String::new();
-
-    if matches.get_one::<String>("input") != None {
-        // Check the error
-        match fs::read_to_string(matches.get_one::<String>("input").unwrap()) {
-            Err(e) => {
-                display::err("Couldn't open target file", Some(&e.to_string()));
-                process::exit(1);
-            }
-            Ok(f) => entry_buf.push_str(&f),
-        };
+    let entry_buf: String = if matches.get_one::<String>("input") != None {
+        fs::read_to_string(matches.get_one::<String>("input").unwrap())?
     } else {
-        match stdin_data() {
-            Ok(stdin) => entry_buf.push_str(&stdin),
-            Err(e) => {
-                display::err(e.as_str(), None);
-                process::exit(1);
-            }
-        };
-    }
+        stdin_data()
+    };
 
     // validate and decode json
-    let data_map = match serde_json::from_str(&entry_buf) {
-        Err(e) => {
-            display::err("Unable to decode json", Some(&e.to_string()));
-            process::exit(1);
-        }
-        Ok(v) => v,
-    };
+    let data_map = serde_json::from_str(entry_buf.as_str())?;
+
+    println!("{entry_buf}");
 
     // sort
     // serde decode json to BTreeMap type so
@@ -58,18 +40,17 @@ fn main() {
         buffer = BufWriter::new(Box::new(file));
     }
 
-    match buffer.write_all(serde_json::to_string_pretty(&data_map).unwrap().as_bytes()) {
-        Err(e) => display::err("Unable to write in buffer", Some(&e.to_string())),
-        Ok(_) => {}
-    }
+    buffer.write_all(serde_json::to_string_pretty(&data_map).unwrap().as_bytes())?;
+
+    Ok(())
 }
 
-fn stdin_data() -> std::result::Result<String, String> {
+fn stdin_data() -> String {
     let mut lines = io::stdin().lines();
     let mut buffer = String::new();
 
     while let Some(line) = lines.next() {
-        let last_input = line.unwrap();
+        let last_input = line.expect("fuck your entry");
 
         // Stop reading
         if last_input.len() == 0 {
@@ -85,7 +66,7 @@ fn stdin_data() -> std::result::Result<String, String> {
         buffer.push_str(&last_input);
     }
 
-    Ok(buffer)
+    buffer
 }
 
 fn is_data_piped() -> bool {
