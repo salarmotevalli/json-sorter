@@ -30,15 +30,7 @@ fn main() -> error::Result<()> {
     // the data map is sorted now
 
     // put out
-
-    let mut buffer: BufWriter<Box<dyn io::Write>> = BufWriter::new(Box::new(io::stdout()));
-
-    if let Some(output_file) = matches.get_one::<String>("output") {
-        let file = File::create(&output_file).expect("cannot create file");
-        buffer = BufWriter::new(Box::new(file));
-    }
-
-    buffer.write_all(serde_json::to_string_pretty(&data_map).unwrap().as_bytes())?;
+    put_out_result(matches.get_one::<String>("output"), data_map)?;
 
     Ok(())
 }
@@ -75,4 +67,16 @@ fn is_data_piped() -> bool {
         Ok(meta) => return meta.mode() == 4480, // Return is data piped
         Err(_) => false,
     }
+}
+
+fn put_out_result(std_out: Option<&String>, data_map: Value) -> error::Result<()> {
+    let mut buffer: BufWriter<Box<dyn io::Write>> = BufWriter::new(Box::new(io::stdout()));
+
+    if let Some(output_file) = std_out {
+        let file = File::create(&output_file).expect("cannot create file");
+        buffer = BufWriter::new(Box::new(file));
+    }
+    buffer.write_all(serde_json::to_string_pretty(&data_map).unwrap().as_bytes())?;
+
+    Ok(())
 }
