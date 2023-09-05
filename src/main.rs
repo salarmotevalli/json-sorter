@@ -1,4 +1,4 @@
-use clap::{Arg, Command};
+use clap::{Arg, ArgMatches, Command};
 use serde_json::Value;
 use std::fs;
 use std::fs::{metadata, File};
@@ -9,11 +9,7 @@ mod error;
 
 fn main() -> error::Result<()> {
     // Parse flags
-    let matches = Command::new("salar")
-        .arg_required_else_help(!is_data_piped())
-        .arg(Arg::new("input").short('i').long("input"))
-        .arg(Arg::new("output").short('o').long("output"))
-        .get_matches();
+    let matches: ArgMatches = set_matches();
 
     // Store entry data
     let entry_buf: String = if matches.get_one::<String>("input") != None {
@@ -30,9 +26,17 @@ fn main() -> error::Result<()> {
     // the data map is sorted now
 
     // put out
-    put_out_result(matches.get_one::<String>("output"), data_map)?;
+    put_out_result(matches.get_one::<String>("output"), &data_map)?;
 
     Ok(())
+}
+
+fn set_matches() -> ArgMatches {
+    Command::new("seyn")
+        .arg_required_else_help(!is_data_piped())
+        .arg(Arg::new("input").short('i').long("input"))
+        .arg(Arg::new("output").short('o').long("output"))
+        .get_matches()
 }
 
 fn stdin_data() -> String {
@@ -69,14 +73,15 @@ fn is_data_piped() -> bool {
     }
 }
 
-fn put_out_result(std_out: Option<&String>, data_map: Value) -> error::Result<()> {
-    let mut buffer: BufWriter<Box<dyn io::Write>> = BufWriter::new(Box::new(io::stdout()));
-
-    if let Some(output_file) = std_out {
+fn put_out_result(std_out: Option<&String>, data_map: &Value) -> error::Result<()> {
+    let mut out_buffer: BufWriter<Box<dyn io::Write>> = if let Some(output_file) = std_out {
         let file = File::create(&output_file).expect("cannot create file");
-        buffer = BufWriter::new(Box::new(file));
-    }
-    buffer.write_all(serde_json::to_string_pretty(&data_map).unwrap().as_bytes())?;
+        BufWriter::new(Box::new(file))
+    } else {
+        BufWriter::new(Box::new(io::stdout()))
+    };
+
+    out_buffer.write_all(serde_json::to_string_pretty(data_map).unwrap().as_bytes())?;
 
     Ok(())
 }
