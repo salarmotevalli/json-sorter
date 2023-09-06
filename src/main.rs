@@ -7,9 +7,12 @@ use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 
 mod error;
 
+#[cfg(test)]
+mod test;
+
 fn main() -> error::Result<()> {
     // Parse flags
-    let matches: ArgMatches = set_matches();
+    let matches: ArgMatches = matches();
 
     // Store entry data
     let entry_buf: String = if matches.get_one::<String>("input") != None {
@@ -25,17 +28,20 @@ fn main() -> error::Result<()> {
     // serde decode json to BTreeMap type so
     // the data map is sorted now
 
+    let result = serde_json::to_string_pretty(&data_map)?.into_bytes();
+
     // put out
-    put_out_result(matches.get_one::<String>("output"), &data_map)?;
+    put_out_result(matches.get_one::<String>("output"), &result)?;
 
     Ok(())
 }
 
-fn set_matches() -> ArgMatches {
+fn matches() -> ArgMatches {
     Command::new("seyn")
         .arg_required_else_help(!is_data_piped())
         .arg(Arg::new("input").short('i').long("input"))
         .arg(Arg::new("output").short('o').long("output"))
+        .arg(Arg::new("wrap").short('w').long("wrap"))
         .get_matches()
 }
 
@@ -73,7 +79,7 @@ fn is_data_piped() -> bool {
     }
 }
 
-fn put_out_result(std_out: Option<&String>, data_map: &Value) -> error::Result<()> {
+fn put_out_result(std_out: Option<&String>, result: &Vec<u8>) -> error::Result<()> {
     let mut out_buffer: BufWriter<Box<dyn io::Write>> = if let Some(output_file) = std_out {
         let file = File::create(&output_file).expect("cannot create file");
         BufWriter::new(Box::new(file))
@@ -81,7 +87,7 @@ fn put_out_result(std_out: Option<&String>, data_map: &Value) -> error::Result<(
         BufWriter::new(Box::new(io::stdout()))
     };
 
-    out_buffer.write_all(serde_json::to_string_pretty(data_map).unwrap().as_bytes())?;
+    out_buffer.write_all(result)?;
 
     Ok(())
 }
