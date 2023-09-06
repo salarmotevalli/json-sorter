@@ -1,8 +1,7 @@
 use clap::{Arg, ArgMatches, Command};
 use serde_json::Value;
-use std::fs;
-use std::fs::{metadata, File};
-use std::io::{self, BufWriter, Write};
+use std::fs::{self, metadata, File};
+use std::io::{self, Write};
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 
 mod error;
@@ -28,10 +27,11 @@ fn main() -> error::Result<()> {
     // serde decode json to BTreeMap type so
     // the data map is sorted now
 
-    let result = serde_json::to_string_pretty(&data_map)?.into_bytes();
+    let result = serde_json::to_string_pretty(&data_map)?;
 
+    let mut writer = writer(matches.get_one::<String>("output"));
     // put out
-    put_out_result(matches.get_one::<String>("output"), &result)?;
+    put_out_result(&mut writer, result)?;
 
     Ok(())
 }
@@ -79,15 +79,16 @@ fn is_data_piped() -> bool {
     }
 }
 
-fn put_out_result(std_out: Option<&String>, result: &Vec<u8>) -> error::Result<()> {
-    let mut out_buffer: BufWriter<Box<dyn io::Write>> = if let Some(output_file) = std_out {
-        let file = File::create(&output_file).expect("cannot create file");
-        BufWriter::new(Box::new(file))
+fn writer(std_out: Option<&String>) -> Box<dyn Write> {
+    if let Some(output_file) = std_out {
+        return Box::new(File::create(output_file).expect("cannot create file"));
     } else {
-        BufWriter::new(Box::new(io::stdout()))
-    };
+        return Box::new(io::stdout());
+    }
+}
 
-    out_buffer.write_all(result)?;
+fn put_out_result(writer: &mut impl Write, result: String) -> error::Result<()> {
+    write!(writer, "{}", result)?;
 
     Ok(())
 }
