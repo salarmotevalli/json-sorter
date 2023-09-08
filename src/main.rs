@@ -14,7 +14,7 @@ fn main() -> error::Result<()> {
     let matches: ArgMatches = matches();
 
     // Store entry data
-    let entry_buf: String = if matches.get_one::<String>("input") != None {
+    let entry_buf: String = if matches.get_one::<String>("input").is_some() {
         fs::read_to_string(matches.get_one::<String>("input").unwrap())?
     } else {
         stdin_data()
@@ -29,7 +29,7 @@ fn main() -> error::Result<()> {
 
     let result = serde_json::to_string_pretty(&data_map)?;
 
-    let mut writer = writer(matches.get_one::<String>("output"));
+    let mut writer = define_writer(matches.get_one::<String>("output"));
     // put out
     put_out_result(&mut writer, result)?;
 
@@ -49,17 +49,17 @@ fn stdin_data() -> String {
     let mut lines = io::stdin().lines();
     let mut buffer = String::new();
 
-    while let Some(line) = lines.next() {
+    for line in &mut lines {
         let last_input = line.expect("fuck your entry");
 
         // Stop reading
-        if last_input.len() == 0 {
+        if last_input.is_empty() {
             break;
         }
 
         // Add a new line once user_input starts storing user input
-        if buffer.len() > 0 {
-            buffer.push_str("\n");
+        if !buffer.is_empty() {
+            buffer.push('\n');
         }
 
         // Store input
@@ -74,16 +74,16 @@ fn is_data_piped() -> bool {
     let meta = metadata("/dev/fd/".to_owned() + &fd.to_string());
 
     match meta {
-        Ok(meta) => return meta.mode() == 4480, // Return is data piped
+        Ok(meta) => meta.mode() == 4480, // Return is data piped
         Err(_) => false,
     }
 }
 
-fn writer(std_out: Option<&String>) -> Box<dyn Write> {
+fn define_writer(std_out: Option<&String>) -> Box<dyn Write> {
     if let Some(output_file) = std_out {
-        return Box::new(File::create(output_file).expect("cannot create file"));
+        Box::new(File::create(output_file).expect("cannot create file"))
     } else {
-        return Box::new(io::stdout());
+        Box::new(io::stdout())
     }
 }
 
