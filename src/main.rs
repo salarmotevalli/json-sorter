@@ -1,7 +1,7 @@
 use clap::{Arg, ArgMatches, Command};
 use serde_json::Value;
-use std::fs::{self, metadata, File};
-use std::io::{self, Write};
+use std::fs::{metadata, File};
+use std::io::{self, Read, Write};
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
 
 mod error;
@@ -14,20 +14,22 @@ fn main() -> error::Result<()> {
     let matches: ArgMatches = matches();
 
     // Store entry data
-    let entry_buf: String = if matches.get_one::<String>("input").is_some() {
-        fs::read_to_string(matches.get_one::<String>("input").unwrap())?
+    let entry_buf: Box<dyn Read> = if matches.get_one::<String>("input").is_some() {
+        let file = File::open(matches.get_one::<String>("input").unwrap())?;
+        Box::new(file)
     } else {
-        stdin_data()
+        Box::new(io::stdin())
     };
 
     // validate and decode json
-    let data_map: Value = serde_json::from_str(entry_buf.as_str())?;
+    // let mut data_map: Value = serde_json::from_str(entry_buf.as_str())?;
+    let d_na: Value = serde_json::from_reader(entry_buf)?;
 
     // sort
     // serde decode json to BTreeMap type so
     // the data map is sorted now
 
-    let result = serde_json::to_string_pretty(&data_map)?;
+    let result = serde_json::to_string_pretty(&d_na)?;
 
     let mut writer = define_writer(matches.get_one::<String>("output"));
     // put out
@@ -43,30 +45,6 @@ fn matches() -> ArgMatches {
         .arg(Arg::new("output").short('o').long("output"))
         .arg(Arg::new("wrap").short('w').long("wrap"))
         .get_matches()
-}
-
-fn stdin_data() -> String {
-    let mut lines = io::stdin().lines();
-    let mut buffer = String::new();
-
-    for line in &mut lines {
-        let last_input = line.expect("fuck your entry");
-
-        // Stop reading
-        if last_input.is_empty() {
-            break;
-        }
-
-        // Add a new line once user_input starts storing user input
-        if !buffer.is_empty() {
-            buffer.push('\n');
-        }
-
-        // Store input
-        buffer.push_str(&last_input);
-    }
-
-    buffer
 }
 
 fn is_data_piped() -> bool {
