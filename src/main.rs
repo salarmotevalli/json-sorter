@@ -1,4 +1,5 @@
 use serde_json::Value;
+use std::collections::{BTreeMap, HashMap};
 use std::fs::{metadata, File};
 use std::io::{self, Read, Write};
 use std::os::unix::{io::AsRawFd, prelude::MetadataExt};
@@ -31,14 +32,14 @@ fn main() -> error::Result<()> {
     let entry_buf: Box<dyn Read> = define_reader(matches.input);
 
     // validate and decode json
-    let data_map: Value = serde_json::from_reader(entry_buf)?;
+    let data_map: BTreeMap<String, Value> = serde_json::from_reader(entry_buf)?;
 
     // sort
     let result = sort(data_map, matches.reverse);
 
-    let mut writer = define_writer(matches.output);
-    // put out
-    put_out_result(&mut writer, result)?;
+    let writer = define_writer(matches.output);
+
+    serde_json::to_writer_pretty(writer, &result)?;
 
     Ok(())
 }
@@ -70,18 +71,12 @@ fn define_writer(std_out: Option<String>) -> Box<dyn Write> {
     }
 }
 
-fn put_out_result(writer: &mut impl Write, result: String) -> error::Result<()> {
-    write!(writer, "{}", result)?;
+fn sort(data_map: BTreeMap<String, Value>, reverse: bool) -> HashMap<String, Value> {
+    println!("{:?}", &data_map);
 
-    Ok(())
-}
+    if !reverse {
+        return data_map.into_iter().collect();
+    };
 
-fn sort(data_map: Value, reverse: bool) -> String {
-    let binding = data_map.as_object();
-    let x = binding.unwrap();
-
-    println!("{:?}", x.into_iter().rev().collect::<Vec<_>>());
-    // serde_json::to_string_pretty(&data_map)?;
-
-    todo!()
+    data_map.into_iter().rev().collect()
 }
