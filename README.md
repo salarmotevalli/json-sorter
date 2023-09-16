@@ -14,12 +14,13 @@ cat <json-file> | seyn
 Also you can define output file
 
 ```
-cat <json-file> | seyn -o sorted_json.json
+cat <json-file> | seyn -o <output-file>
 ```
-this flag creates sorted_json.json file and puts the result in that
+This flag creates <json-file> file and puts the result in that
 
 ---
 ### Flags
 - -i : Define input file
 - -o : Define output file
+- -r : Reverse sorting
 ---
