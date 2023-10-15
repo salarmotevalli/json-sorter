@@ -1,4 +1,4 @@
-use serde_json::Value;
+use serde_json::{from_reader, to_writer_pretty, Value};
 use std::collections::{BTreeMap, HashMap};
 use std::fs::{metadata, File};
 use std::io::{self, Read, Write};
@@ -32,14 +32,14 @@ fn main() -> error::Result<()> {
     let entry_buf: Box<dyn Read> = define_reader(matches.input);
 
     // validate and decode json
-    let data_map: BTreeMap<String, Value> = serde_json::from_reader(entry_buf)?;
+    let data_map: BTreeMap<String, Value> = from_reader(entry_buf)?;
 
     // sort
     let result = sort(data_map, matches.reverse);
 
     let writer = define_writer(matches.output);
 
-    serde_json::to_writer_pretty(writer, &result)?;
+    to_writer_pretty(writer, &result)?;
 
     Ok(())
 }
@@ -72,11 +72,8 @@ fn define_writer(std_out: Option<String>) -> Box<dyn Write> {
 }
 
 fn sort(data_map: BTreeMap<String, Value>, reverse: bool) -> HashMap<String, Value> {
-    println!("{:?}", &data_map);
-
-    if !reverse {
-        return data_map.into_iter().collect();
+    if reverse {
+        return data_map.into_iter().rev().collect();
     };
-
-    data_map.into_iter().rev().collect()
+    data_map.into_iter().collect()
 }
